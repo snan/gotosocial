@@ -40,6 +40,7 @@ import (
 	"github.com/superseriousbusiness/activity/streams"
 	"github.com/superseriousbusiness/activity/streams/vocab"
 	"github.com/superseriousbusiness/gotosocial/internal/ap"
+	"github.com/superseriousbusiness/gotosocial/internal/db"
 	"github.com/superseriousbusiness/gotosocial/internal/gtsmodel"
 )
 
@@ -1459,7 +1460,7 @@ type ActivityWithSignature struct {
 // NewTestActivities returns a bunch of pub.Activity types for use in testing the federation protocols.
 // A struct of accounts needs to be passed in because the activities will also be bundled along with
 // their requesting signatures.
-func NewTestActivities(accounts map[string]*gtsmodel.Account) map[string]ActivityWithSignature {
+func NewTestActivities(accounts map[string]*gtsmodel.Account, db db.DB) map[string]ActivityWithSignature {
 	dmForZork := newAPNote(
 		URLMustParse("http://fossbros-anonymous.io/users/foss_satan/statuses/5424b153-4553-4f30-9358-7b92f7cd42f6"),
 		URLMustParse("http://fossbros-anonymous.io/@foss_satan/5424b153-4553-4f30-9358-7b92f7cd42f6"),
@@ -1478,7 +1479,7 @@ func NewTestActivities(accounts map[string]*gtsmodel.Account) map[string]Activit
 		URLMustParse("http://fossbros-anonymous.io/users/foss_satan"),
 		time.Now(),
 		dmForZork)
-	createDmForZorkSig, createDmForZorkDigest, creatDmForZorkDate := GetSignatureForActivity(createDmForZork, accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, URLMustParse(accounts["local_account_1"].InboxURI))
+	createDmForZorkSig, createDmForZorkDigest, creatDmForZorkDate := GetSignatureForActivity(createDmForZork, accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, URLMustParse(accounts["local_account_1"].InboxURI), db)
 
 	forwardedMessage := newAPNote(
 		URLMustParse("http://example.org/users/some_user/statuses/afaba698-5740-4e32-a702-af61aa543bc1"),
@@ -1498,7 +1499,7 @@ func NewTestActivities(accounts map[string]*gtsmodel.Account) map[string]Activit
 		URLMustParse("http://example.org/users/some_user"),
 		time.Now(),
 		forwardedMessage)
-	createForwardedMessageSig, createForwardedMessageDigest, createForwardedMessageDate := GetSignatureForActivity(createForwardedMessage, accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, URLMustParse(accounts["local_account_1"].InboxURI))
+	createForwardedMessageSig, createForwardedMessageDigest, createForwardedMessageDate := GetSignatureForActivity(createForwardedMessage, accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, URLMustParse(accounts["local_account_1"].InboxURI), db)
 
 	return map[string]ActivityWithSignature{
 		"dm_for_zork": {
@@ -1706,13 +1707,13 @@ func NewTestFediStatuses() map[string]vocab.ActivityStreamsNote {
 }
 
 // NewTestDereferenceRequests returns a map of incoming dereference requests, with their signatures.
-func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[string]ActivityWithSignature {
+func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account, db db.DB) map[string]ActivityWithSignature {
 	var sig, digest, date string
 	var target *url.URL
 	statuses := NewTestStatuses()
 
 	target = URLMustParse(accounts["local_account_1"].URI)
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceZork := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1720,7 +1721,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(accounts["local_account_1"].PublicKeyURI)
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceZorkPublicKey := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1728,7 +1729,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(statuses["local_account_1_status_1"].URI + "/replies")
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceLocalAccount1Status1Replies := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1736,7 +1737,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(statuses["local_account_1_status_1"].URI + "/replies?only_other_accounts=false&page=true")
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceLocalAccount1Status1RepliesNext := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1744,7 +1745,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(statuses["local_account_1_status_1"].URI + "/replies?only_other_accounts=false&page=true&min_id=01FF25D5Q0DH7CHD57CTRS6WK0")
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceLocalAccount1Status1RepliesLast := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1752,7 +1753,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(accounts["local_account_1"].OutboxURI)
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceZorkOutbox := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1760,7 +1761,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(accounts["local_account_1"].OutboxURI + "?page=true")
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceZorkOutboxFirst := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1768,7 +1769,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 	}
 
 	target = URLMustParse(accounts["local_account_1"].OutboxURI + "?page=true&max_id=01F8MHAMCHF6Y650WCRSCP4WMY")
-	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target)
+	sig, digest, date = GetSignatureForDereference(accounts["remote_account_1"].PublicKeyURI, accounts["remote_account_1"].PrivateKey, target, db)
 	fossSatanDereferenceZorkOutboxNext := ActivityWithSignature{
 		SignatureHeader: sig,
 		DigestHeader:    digest,
@@ -1789,7 +1790,7 @@ func NewTestDereferenceRequests(accounts map[string]*gtsmodel.Account) map[strin
 
 // GetSignatureForActivity does some sneaky sneaky work with a mock http client and a test transport controller, in order to derive
 // the HTTP Signature for the given activity, public key ID, private key, and destination.
-func GetSignatureForActivity(activity pub.Activity, pubKeyID string, privkey crypto.PrivateKey, destination *url.URL) (signatureHeader string, digestHeader string, dateHeader string) {
+func GetSignatureForActivity(activity pub.Activity, pubKeyID string, privkey crypto.PrivateKey, destination *url.URL, db db.DB) (signatureHeader string, digestHeader string, dateHeader string) {
 	// create a client that basically just pulls the signature out of the request and sets it
 	client := &mockHTTPClient{
 		do: func(req *http.Request) (*http.Response, error) {
@@ -1805,7 +1806,7 @@ func GetSignatureForActivity(activity pub.Activity, pubKeyID string, privkey cry
 	}
 
 	// use the client to create a new transport
-	c := NewTestTransportController(client, NewTestDB())
+	c := NewTestTransportController(client, db)
 	tp, err := c.NewTransport(pubKeyID, privkey)
 	if err != nil {
 		panic(err)
@@ -1832,7 +1833,7 @@ func GetSignatureForActivity(activity pub.Activity, pubKeyID string, privkey cry
 
 // GetSignatureForDereference does some sneaky sneaky work with a mock http client and a test transport controller, in order to derive
 // the HTTP Signature for the given derefence GET request using public key ID, private key, and destination.
-func GetSignatureForDereference(pubKeyID string, privkey crypto.PrivateKey, destination *url.URL) (signatureHeader string, digestHeader string, dateHeader string) {
+func GetSignatureForDereference(pubKeyID string, privkey crypto.PrivateKey, destination *url.URL, db db.DB) (signatureHeader string, digestHeader string, dateHeader string) {
 	// create a client that basically just pulls the signature out of the request and sets it
 	client := &mockHTTPClient{
 		do: func(req *http.Request) (*http.Response, error) {
@@ -1847,7 +1848,7 @@ func GetSignatureForDereference(pubKeyID string, privkey crypto.PrivateKey, dest
 	}
 
 	// use the client to create a new transport
-	c := NewTestTransportController(client, NewTestDB())
+	c := NewTestTransportController(client, db)
 	tp, err := c.NewTransport(pubKeyID, privkey)
 	if err != nil {
 		panic(err)

@@ -33,8 +33,7 @@ type AdminTestSuite struct {
 func (suite *AdminTestSuite) TestCreateInstanceAccount() {
 	// we need to take an empty db for this...
 	testrig.StandardDBTeardown(suite.db)
-	// ...with tables created but no data
-	testrig.CreateTestTables(suite.db)
+	suite.db = testrig.NewTestDB()
 
 	// make sure there's no instance account in the db yet
 	acct, err := suite.db.GetInstanceAccount(context.Background(), "")

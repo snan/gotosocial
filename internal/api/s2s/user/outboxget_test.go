@@ -40,7 +40,7 @@ type OutboxGetTestSuite struct {
 
 func (suite *OutboxGetTestSuite) TestGetOutbox() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_zork_outbox"]
 	targetAccount := suite.testAccounts["local_account_1"]
 
@@ -95,7 +95,7 @@ func (suite *OutboxGetTestSuite) TestGetOutbox() {
 
 func (suite *OutboxGetTestSuite) TestGetOutboxFirstPage() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_zork_outbox_first"]
 	targetAccount := suite.testAccounts["local_account_1"]
 
@@ -150,7 +150,7 @@ func (suite *OutboxGetTestSuite) TestGetOutboxFirstPage() {
 
 func (suite *OutboxGetTestSuite) TestGetOutboxNextPage() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_zork_outbox_next"]
 	targetAccount := suite.testAccounts["local_account_1"]
 

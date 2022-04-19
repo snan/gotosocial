@@ -99,7 +99,7 @@ func (suite *ProcessingStandardTestSuite) SetupTest() {
 	testrig.InitTestLog()
 
 	suite.db = testrig.NewTestDB()
-	suite.testActivities = testrig.NewTestActivities(suite.testAccounts)
+	suite.testActivities = testrig.NewTestActivities(suite.testAccounts, suite.db)
 	suite.storage = testrig.NewTestStorage()
 	suite.typeconverter = testrig.NewTestTypeConverter(suite.db)
 

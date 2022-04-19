@@ -33,6 +33,7 @@ import (
 
 var testModels = []interface{}{
 	&gtsmodel.Account{},
+	&gtsmodel.AdminAccountAction{},
 	&gtsmodel.Application{},
 	&gtsmodel.Block{},
 	&gtsmodel.DomainBlock{},
@@ -91,16 +92,6 @@ func NewTestDB() db.DB {
 	return testDB
 }
 
-// CreateTestTables creates prerequisite test tables in the database, but doesn't populate them.
-func CreateTestTables(db db.DB) {
-	ctx := context.Background()
-	for _, m := range testModels {
-		if err := db.CreateTable(ctx, m); err != nil {
-			logrus.Panicf("error creating table for %+v: %s", m, err)
-		}
-	}
-}
-
 // StandardDBSetup populates a given db with all the necessary tables/models for perfoming tests.
 //
 // The accounts parameter is provided in case the db should be populated with a certain set of accounts.
@@ -113,8 +104,6 @@ func StandardDBSetup(db db.DB, accounts map[string]*gtsmodel.Account) {
 	if db == nil {
 		logrus.Panic("db setup: db was nil")
 	}
-
-	CreateTestTables(db)
 
 	ctx := context.Background()
 
@@ -233,9 +222,14 @@ func StandardDBTeardown(db db.DB) {
 	if db == nil {
 		logrus.Panic("db teardown: db was nil")
 	}
+
 	for _, m := range testModels {
 		if err := db.DropTable(ctx, m); err != nil {
 			logrus.Panic(err)
 		}
+	}
+
+	if err := db.DropMigrationTables(ctx); err != nil {
+		logrus.Panic(err)
 	}
 }

@@ -42,7 +42,7 @@ type RepliesGetTestSuite struct {
 
 func (suite *RepliesGetTestSuite) TestGetReplies() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_local_account_1_status_1_replies"]
 	targetAccount := suite.testAccounts["local_account_1"]
 	targetStatus := suite.testStatuses["local_account_1_status_1"]
@@ -103,7 +103,7 @@ func (suite *RepliesGetTestSuite) TestGetReplies() {
 
 func (suite *RepliesGetTestSuite) TestGetRepliesNext() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_local_account_1_status_1_replies_next"]
 	targetAccount := suite.testAccounts["local_account_1"]
 	targetStatus := suite.testStatuses["local_account_1_status_1"]
@@ -167,7 +167,7 @@ func (suite *RepliesGetTestSuite) TestGetRepliesNext() {
 
 func (suite *RepliesGetTestSuite) TestGetRepliesLast() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_local_account_1_status_1_replies_last"]
 	targetAccount := suite.testAccounts["local_account_1"]
 	targetStatus := suite.testStatuses["local_account_1_status_1"]

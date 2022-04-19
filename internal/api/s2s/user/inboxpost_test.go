@@ -75,7 +75,7 @@ func (suite *InboxPostTestSuite) TestPostBlock() {
 
 	targetURI := testrig.URLMustParse(blockedAccount.InboxURI)
 
-	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(block, blockingAccount.PublicKeyURI, blockingAccount.PrivateKey, targetURI)
+	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(block, blockingAccount.PublicKeyURI, blockingAccount.PrivateKey, targetURI, suite.db)
 	bodyI, err := streams.Serialize(block)
 	suite.NoError(err)
 
@@ -175,7 +175,7 @@ func (suite *InboxPostTestSuite) TestPostUnblock() {
 
 	targetURI := testrig.URLMustParse(blockedAccount.InboxURI)
 
-	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(undo, blockingAccount.PublicKeyURI, blockingAccount.PrivateKey, targetURI)
+	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(undo, blockingAccount.PublicKeyURI, blockingAccount.PrivateKey, targetURI, suite.db)
 	bodyI, err := streams.Serialize(undo)
 	suite.NoError(err)
 
@@ -265,7 +265,7 @@ func (suite *InboxPostTestSuite) TestPostUpdate() {
 
 	targetURI := testrig.URLMustParse(receivingAccount.InboxURI)
 
-	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(update, updatedAccount.PublicKeyURI, updatedAccount.PrivateKey, targetURI)
+	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(update, updatedAccount.PublicKeyURI, updatedAccount.PrivateKey, targetURI, suite.db)
 	bodyI, err := streams.Serialize(update)
 	suite.NoError(err)
 
@@ -384,7 +384,7 @@ func (suite *InboxPostTestSuite) TestPostDelete() {
 
 	targetURI := testrig.URLMustParse(receivingAccount.InboxURI)
 
-	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(delete, deletedAccount.PublicKeyURI, deletedAccount.PrivateKey, targetURI)
+	signature, digestHeader, dateHeader := testrig.GetSignatureForActivity(delete, deletedAccount.PublicKeyURI, deletedAccount.PrivateKey, targetURI, suite.db)
 	bodyI, err := streams.Serialize(delete)
 	suite.NoError(err)
 

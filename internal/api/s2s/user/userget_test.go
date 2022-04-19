@@ -43,7 +43,7 @@ type UserGetTestSuite struct {
 
 func (suite *UserGetTestSuite) TestGetUser() {
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_zork"]
 	targetAccount := suite.testAccounts["local_account_1"]
 
@@ -122,7 +122,7 @@ func (suite *UserGetTestSuite) TestGetUserPublicKeyDeleted() {
 	time.Sleep(1 * time.Second)
 
 	// the dereference we're gonna use
-	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts)
+	derefRequests := testrig.NewTestDereferenceRequests(suite.testAccounts, suite.db)
 	signedRequest := derefRequests["foss_satan_dereference_zork_public_key"]
 
 	tc := testrig.NewTestTransportController(testrig.NewMockHTTPClient(nil), suite.db)

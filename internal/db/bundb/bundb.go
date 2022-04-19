@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/ReneKroon/ttlcache"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/sirupsen/logrus"
@@ -215,7 +216,14 @@ func sqliteConn(ctx context.Context) (*DBConn, error) {
 	dbAddress = strings.TrimPrefix(dbAddress, "file:")
 
 	// Append our own SQLite preferences
-	dbAddress = "file:" + dbAddress + "?cache=shared"
+	var inMem bool
+	if dbAddress == ":memory:" {
+		logrus.Warn("sqlite in-memory database should only be used for debugging")
+		dbAddress = fmt.Sprintf("file:%s?mode=memory&cache=shared", uuid.NewString())
+		inMem = true
+	} else {
+		dbAddress = "file:" + dbAddress + "?cache=shared"
+	}
 
 	// Open new DB instance
 	sqldb, err := sql.Open("sqlite", dbAddress)
@@ -226,15 +234,7 @@ func sqliteConn(ctx context.Context) (*DBConn, error) {
 		return nil, fmt.Errorf("could not open sqlite db: %s", err)
 	}
 
-	tweakConnectionValues(sqldb)
-
-	if dbAddress == "file::memory:?cache=shared" {
-		logrus.Warn("sqlite in-memory database should only be used for debugging")
-		// don't close connections on disconnect -- otherwise
-		// the SQLite database will be deleted when there
-		// are no active connections
-		sqldb.SetConnMaxLifetime(0)
-	}
+	tweakConnectionValues(sqldb, inMem)
 
 	conn := WrapDBConn(bun.NewDB(sqldb, sqlitedialect.New()))
 
@@ -258,7 +258,7 @@ func pgConn(ctx context.Context) (*DBConn, error) {
 
 	sqldb := stdlib.OpenDB(*opts)
 
-	tweakConnectionValues(sqldb)
+	tweakConnectionValues(sqldb, false)
 
 	conn := WrapDBConn(bun.NewDB(sqldb, pgdialect.New()))
 
@@ -372,10 +372,16 @@ func deriveBunDBPGOptions() (*pgx.ConnConfig, error) {
 }
 
 // https://bun.uptrace.dev/postgres/running-bun-in-production.html#database-sql
-func tweakConnectionValues(sqldb *sql.DB) {
+func tweakConnectionValues(sqldb *sql.DB, inMem bool) {
 	maxOpenConns := 4 * runtime.GOMAXPROCS(0)
 	sqldb.SetMaxOpenConns(maxOpenConns)
 	sqldb.SetMaxIdleConns(maxOpenConns)
+	if inMem {
+		// don't close connections on disconnect -- otherwise
+		// the SQLite database will be deleted when there
+		// are no active connections
+		sqldb.SetConnMaxLifetime(0)
+	}
 }
 
 /*

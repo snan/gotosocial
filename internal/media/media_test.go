@@ -39,12 +39,11 @@ type MediaStandardTestSuite struct {
 func (suite *MediaStandardTestSuite) SetupSuite() {
 	testrig.InitTestConfig()
 	testrig.InitTestLog()
-
-	suite.db = testrig.NewTestDB()
 	suite.storage = testrig.NewTestStorage()
 }
 
 func (suite *MediaStandardTestSuite) SetupTest() {
+	suite.db = testrig.NewTestDB()
 	testrig.StandardStorageSetup(suite.storage, "../../testrig/media")
 	testrig.StandardDBSetup(suite.db, nil)
 	suite.testAttachments = testrig.NewTestAttachments()

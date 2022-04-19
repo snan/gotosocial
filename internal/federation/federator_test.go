@@ -59,8 +59,8 @@ func (suite *ProtocolTestSuite) SetupTest() {
 	testrig.InitTestLog()
 	testrig.InitTestConfig()
 	suite.db = testrig.NewTestDB()
-	suite.activities = testrig.NewTestActivities(suite.accounts)
 	testrig.StandardDBSetup(suite.db, suite.accounts)
+	suite.activities = testrig.NewTestActivities(suite.accounts, suite.db)
 }
 
 // TearDownTest drops tables to make sure there's no data in the db

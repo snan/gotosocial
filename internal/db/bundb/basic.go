@@ -160,6 +160,20 @@ func (b *basicDB) DropTable(ctx context.Context, i interface{}) db.Error {
 	return b.conn.ProcessError(err)
 }
 
+func (b *basicDB) DropMigrationTables(ctx context.Context) db.Error {
+	if _, err := b.conn.QueryContext(ctx, "DROP TABLE IF EXISTS bun_migrations");
+	err != nil {
+		return b.conn.ProcessError(err)
+	}
+
+	if _, err := b.conn.QueryContext(ctx, "DROP TABLE IF EXISTS bun_migration_locks");
+	err != nil {
+		return b.conn.ProcessError(err)
+	}
+
+	return nil
+}
+
 func (b *basicDB) IsHealthy(ctx context.Context) db.Error {
 	return b.conn.Ping()
 }
